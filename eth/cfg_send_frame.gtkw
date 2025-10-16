@@ -1,0 +1,53 @@
+[*]
+[*] GTKWave Analyzer v3.3.86 (w)1999-2017 BSI
+[*] Mon Nov  8 11:40:07 2021
+[*]
+[dumpfile] "/home/zaqc/work/altera/stick2/eth/dumpfile_send_frame.vcd"
+[dumpfile_mtime] "Mon Nov  8 11:39:03 2021"
+[dumpfile_size] 4525355
+[savefile] "/home/zaqc/work/altera/stick2/eth/cfg_send_frame.gtkw"
+[timestart] 38864
+[size] 2716 1221
+[pos] 127 65
+*-8.000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] packet_sender_tb.
+[treeopen] packet_sender_tb.packet_sender_unit.
+[sst_width] 223
+[signals_width] 150
+[sst_expanded] 1
+[sst_vpaned_height] 370
+@28
+packet_sender_tb.packet_sender_unit.rst_n
+packet_sender_tb.packet_sender_unit.clk
+packet_sender_tb.packet_sender_unit.i_sync
+@200
+-
+@28
+packet_sender_tb.packet_sender_unit.i_tx_rdy
+@22
+packet_sender_tb.packet_sender_unit.o_tx_data[31:0]
+@28
+packet_sender_tb.packet_sender_unit.o_tx_vld
+packet_sender_tb.packet_sender_unit.o_tx_sop
+packet_sender_tb.packet_sender_unit.o_tx_eop
+@200
+-
+@28
+packet_sender_tb.packet_sender_unit.o_rx_rdy
+@22
+packet_sender_tb.packet_sender_unit.i_rx_data[31:0]
+@28
+packet_sender_tb.packet_sender_unit.i_rx_vld
+packet_sender_tb.packet_sender_unit.i_rx_sop
+packet_sender_tb.packet_sender_unit.i_rx_eop
+@200
+-
+@22
+packet_sender_tb.packet_sender_unit.i_in_data[31:0]
+@28
+packet_sender_tb.packet_sender_unit.i_in_vld
+packet_sender_tb.packet_sender_unit.o_in_rdy
+@23
+packet_sender_tb.pkt_len[15:0]
+[pattern_trace] 1
+[pattern_trace] 0
