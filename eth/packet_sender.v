@@ -193,10 +193,10 @@ module packet_sender(
 		.rst_n(rst_n),
 		.clk(clk),
 		
-		.i_dst_mac(mcast_mac),
+		.i_dst_mac(48'hFFFFFFFFFFFF), //mcast_mac),
 		.i_src_mac(self_mac),
 		
-		.i_dst_ip(mcast_ip),
+		.i_dst_ip(32'hFFFFFFFF), //mcast_ip),
 		.i_src_ip(self_ip),
 		
 		.i_src_port(udp_src_port),

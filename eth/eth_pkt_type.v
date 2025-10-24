@@ -43,9 +43,9 @@ module eth_pkt_type(
 );
 	`include "packet_type.h"
 	
-	reg			[0:0]			prev_sync;
-	initial prev_sync <= 1'b0;
-	always @ (posedge clk) prev_sync <= i_sync;
+	reg			[1:0]			prev_sync;
+	initial prev_sync <= 2'b00;
+	always @ (posedge clk) prev_sync <= {prev_sync[0], i_sync};
 
 	assign o_pkt_type = pkt_type;
 
@@ -61,7 +61,7 @@ module eth_pkt_type(
 		if(~rst_n)
 			sync_lutched <= 1'b0;
 		else
-		if(i_sync & ~prev_sync)
+		if(prev_sync == 2'b01)
 			sync_lutched <= 1'b1;
 		else
 			if(prev_pkt_type == PT_NONE && pkt_type == PT_UDP)

@@ -84,7 +84,7 @@ inout [31:0] io;
 output [3:0] led;
 //reset all PHYs	
 assign alt_rdy = 1'b1;
-assign disspiss = 0;	//select sspi control
+assign disspiss = 1;	//select sspi control
 reg [31:0] res_gen;
 wire res_all;
 assign res_all = res_gen > 50000;	//1 ms
@@ -213,7 +213,7 @@ end
 			led_cntr <= led_cntr + 1'b1;
 	
 	wire		[15:0]			frame_size;
-	assign frame_size = 16'd500;
+	assign frame_size = 16'd1500;
 	
 	reg			[23:0]			sync_cntr;
 	always @ (posedge sysclk)
@@ -223,7 +223,7 @@ end
 		.rst_n(rst_n),
 		.clk(sysclk),
 		
-		.i_sync(sync_cntr[23]),
+		.i_sync(sync_cntr[14]),
 
 		.i_rx_data(rx_data),
 		.i_rx_vld(rx_vld),
@@ -260,6 +260,10 @@ end
 		.address(tx_addr),
 		.data(rx_data),
 		.wren(rx_vld & rx_rdy)
+	);
+	
+	sys sys_unit(
+		.clk_clk(sysclk)
 	);
 
 

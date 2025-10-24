@@ -248,10 +248,10 @@ module eth_parser(
 		if(~rst_n) 
 			arp_req_flag <= 1'd0;
 		else
-			if(~arp_req_flag && i_in_vld /*& i_in_eop*/ && pkt_type == 16'h0806 && 
+			if(~arp_req_flag && i_in_vld & i_in_eop && pkt_type == 16'h0806 && 
 					arp_hdr1 == 32'h00010800 && arp_hdr2 == 32'h06040001 && 
-					((recv_state == RS_ARP_PKT /*4'd10*/ && i_in_data == i_self_ip))) begin// ||
-					//(&{recv_state} && tpa == i_self_ip))) begin
+					((recv_state == RS_ARP_PKT /*4'd10*/ && i_in_data == i_self_ip) ||
+					(&{recv_state} && tpa == i_self_ip))) begin
 				arp_req_flag <= 1'b1;
 				arp_req_mac <= sha;
 				arp_req_ip <= spa;				

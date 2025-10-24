@@ -34,8 +34,8 @@ module send_arp_pkt(
 	reg			[47:0]			tha;
 	reg			[31:0]			tpa;
 	
-	reg			[0:0]			prev_sync;
-	always @ (posedge clk) prev_sync <= i_sync;
+	reg			[1:0]			prev_sync;
+	always @ (posedge clk) prev_sync <= {prev_sync[0], i_sync};
 	
 	reg			[3:0]			s_step;
 	
@@ -57,13 +57,13 @@ module send_arp_pkt(
 								SS_STEP_B = 4'd13;
 	
 	wire		[3:0]			next_step;
-	reg			[4:0]			dummy_cnt;
+	reg			[2:0]			dummy_cnt;
 	
 	always @ (posedge clk or negedge rst_n)
 		if(~rst_n)
 			s_step <= SS_NONE;
 		else
-			if(i_sync & ~prev_sync) begin
+			if(prev_sync == 2'b01) begin
 				s_step <= SS_START;
 				
 				dst_mac <= i_dst_mac;
@@ -75,7 +75,7 @@ module send_arp_pkt(
 				spa <= i_arp_spa;
 				tha <= i_arp_tha;
 				tpa <= i_arp_tpa;
-				dummy_cnt <= 5'd0;
+				dummy_cnt <= 3'd0;
 			end
 			else begin
 				s_step <= i_eth_rdy ? next_step : s_step;
@@ -94,8 +94,8 @@ module send_arp_pkt(
 		s_step == SS_STEP_7 ?	{SS_STEP_8, 1'b0, 1'b0, sha[15:0], spa[31:16], 1'b1} :
 		s_step == SS_STEP_8 ?	{SS_STEP_9, 1'b0, 1'b0, spa[15:0], tha[47:32], 1'b1} :
 		s_step == SS_STEP_9 ?	{SS_STEP_A, 1'b0, 1'b0, tha[31:0], 1'b1} :
-		s_step == SS_STEP_A ?	{SS_NONE, 1'b0, 1'b1, tpa[31:0], 1'b1} :	//{SS_STEP_B, 1'b0, 1'b0, tpa[31:0], 1'b1} :
-		//s_step == SS_STEP_B ?	&{dummy_cnt} ? {SS_NONE, 1'b0, 1'b1, 32'd0, 1'b1} : {SS_STEP_B, 1'b0, 1'b0, 32'd0, 1'b1} :
+		s_step == SS_STEP_A ?	{SS_STEP_B, 1'b0, 1'b0, tpa[31:0], 1'b1} :
+		s_step == SS_STEP_B ?	{SS_NONE, 1'b0, 1'b1, 32'd0, 1'b1} : // &{dummy_cnt} ? {SS_NONE, 1'b0, 1'b1, 32'd0, 1'b1} : {SS_STEP_B, 1'b0, 1'b0, 32'd0, 1'b1} :
 								{SS_NONE, 1'b0, 1'b0, 32'dX, 1'b0};
 								
 endmodule

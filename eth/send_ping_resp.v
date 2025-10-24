@@ -23,9 +23,11 @@ module send_ping_resp(
 );
 	
 	reg			[15:0]			pkt_id;
-	always @ (posedge clk or negedge rst_n) 
-		pkt_id <= ~rst_n ? 16'h0001 :
-			o_eth_vld & o_eth_eop ? pkt_id + 1'd1 : pkt_id;
+	always @ (posedge clk or negedge rst_n)
+		if(~rst_n)
+			pkt_id <= 16'h0001;
+		else
+			pkt_id <= o_eth_vld & o_eth_eop ? pkt_id + 1'd1 : pkt_id;
 	
 	send_ip_frame send_ip_frame_unit(
 		.rst_n(rst_n),
