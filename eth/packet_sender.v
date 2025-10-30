@@ -1,7 +1,9 @@
 module packet_sender(
 	input						rst_n,
 	input						clk,
-	
+
+	output						o_ps_ready,
+
 	input						i_sync,		// sync for UDP Packet Send
 
 	input		[7:0]			i_eb_addr,
@@ -22,6 +24,8 @@ module packet_sender(
 	input						i_rx_eop,
 	output						o_rx_rdy,
 	
+	input		[15:0]			i_dst_port,
+
 	input		[31:0]			i_in_data,	// Data Stream to Send
 	input						i_in_vld,
 	output						o_in_rdy,
@@ -30,6 +34,10 @@ module packet_sender(
 	output		[31:0]			o_def_data,
 	output						o_def_wren,
 	input						i_def_rdy,
+	
+	output		[31:0]			o_cmd_data,
+	output						o_cmd_wren,
+
 	
 	output		[31:0]			o_vrc_data,
 	output		[5:0]			o_vrc_addr,
@@ -40,6 +48,9 @@ module packet_sender(
 	input		[15:0]			i_udp_pkt_len
 );
 	`include "packet_type.h"
+
+	wire						sync_lutched;
+	assign o_ps_ready = pkt_type == PT_NONE & ~sync_lutched;
 
 	wire		[1:0]			pkt_type;
 
@@ -86,12 +97,14 @@ module packet_sender(
 		.o_mcast_ip(mcast_ip),
 		
 		.o_udp_src_port(udp_src_port),
-		.o_udp_dst_port(udp_dst_port),
+		//.o_udp_dst_port(udp_dst_port),
 	
 		.o_udp_pkt_len(udp_pkt_len),
 		.o_udp_start_addr(udp_start_addr)
 	);
 	
+	assign udp_dst_port = i_dst_port;	// !!!!!!!!!!!!!! UDP Dst Port !!!!!!!!!!!!!!
+
 	wire						arp_ready;	// module ready
 	wire						udp_ready;
 	wire						ping_ready;
@@ -109,6 +122,8 @@ module packet_sender(
 	eth_pkt_type eth_pkt_type_unit(
 		.rst_n(rst_n),
 		.clk(clk),
+		
+		.o_sync_lutched(sync_lutched),
 		
 		.i_sync(i_sync),
 		
@@ -145,6 +160,9 @@ module packet_sender(
 		.o_def_wren(o_def_wren),
 		.i_def_rdy(i_def_rdy),
 		
+		.o_cmd_data(o_cmd_data),
+		.o_cmd_wren(o_cmd_wren),
+
 		.o_vrc_addr(o_vrc_addr),
 		.o_vrc_data(o_vrc_data),
 		.o_vrc_wren(o_vrc_wren)

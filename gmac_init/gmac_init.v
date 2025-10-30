@@ -17,21 +17,20 @@ module gmac_init(
 								GI_SET_MAC_1 = 2,
 								GI_SET_MAC_2 = 3,
 								
-								GI_SET_PHY_ADDR_0 = 4,
-								GI_SET_PHY_ADDR_1 = 5,
+								GI_SET_PHY_ADDR = 4,
 																
-								GI_RD_PHY_R16 = 6,	// Set Automatic Crossover
-								GI_WR_PHY_R16 = 7,
-								
-								GI_RD_PHY_R20 = 8,	// Set Delay for GTX
-								GI_WR_PHY_R20 = 9,
+								GI_RD_PHY_R16 = 5,	// Set Automatic Crossover
+								GI_WR_PHY_R16 = 6,
 
-								GI_RD_PHY_RST = 10,	// Reset PHY
-								GI_WR_PHY_RST = 11,
-								GI_WAIT_PHY_RST = 12,
+								GI_RD_PHY_R20 = 7,	// Set Delay for GTX
+								GI_WR_PHY_R20 = 8,
 
-								GI_RD_MAC_CTRL_REG = 13,	// Enable MAC RX & TX
-								GI_WR_MAC_CTRL_REG = 14,
+								GI_RD_PHY_RST = 9,	// Reset PHY
+								GI_WR_PHY_RST = 10,
+								GI_WAIT_PHY_RST = 11,
+
+								GI_RD_MAC_CTRL_REG = 12,	// Enable MAC RX & TX
+								GI_WR_MAC_CTRL_REG = 13,
 								
 								GI_DONE = 15;
 								
@@ -50,8 +49,7 @@ module gmac_init(
 		gi_state == GI_SET_MAC_1		? {8'h03,	32'hEC362200,	 	1'b1, 	1'b0} :
 		gi_state == GI_SET_MAC_2		? {8'h04,	32'h00000104,		1'b1, 	1'b0} :
 		
-		gi_state == GI_SET_PHY_ADDR_0	? {8'h0F,	32'h00000004 /*0x10*/,		1'b1, 	1'b0} :	
-		gi_state == GI_SET_PHY_ADDR_1	? {8'h10,	32'h00000000 /*0x10*/,		1'b1, 	1'b0} :	
+		gi_state == GI_SET_PHY_ADDR		? {8'h0F,	32'h00000010,		1'b1, 	1'b0} :
 				
 		gi_state == GI_RD_PHY_R16		? {8'h90, 	32'hXXXXXXXX,		1'b0, 	1'b1} :
 		gi_state == GI_WR_PHY_R16		? {8'h90, 	r_reg | 8'h60, 		1'b1,	1'b0} :	// 0x90
@@ -95,7 +93,6 @@ module gmac_init(
 			if(delay_done)
 				if(~|{gi_state} || ~i_wtrq)
 					case(gi_state)
-						GI_SET_PHY_ADDR_1: gi_state <= GI_RD_PHY_RST;
 						GI_WAIT_PHY_RST: if(~i_rd_data[15]) gi_state <= GI_RD_MAC_CTRL_REG;
 						GI_WR_MAC_CTRL_REG: gi_state <= GI_DONE;
 						GI_DONE: gi_state <= gi_state;

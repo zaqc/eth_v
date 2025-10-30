@@ -2,6 +2,8 @@ module eth_pkt_type(
 	input						rst_n,
 	input						clk,
 	
+	output						o_sync_lutched,
+
 	input						i_sync,
 	
 	input		[31:0]			i_self_ip,
@@ -37,6 +39,9 @@ module eth_pkt_type(
 	output						o_def_wren,
 	input						i_def_rdy,
 	
+	output		[31:0]			o_cmd_data,
+	output						o_cmd_wren,
+
 	output		[5:0]			o_vrc_addr,
 	output		[31:0]			o_vrc_data,
 	output		[1:0]			o_vrc_wren
@@ -66,7 +71,9 @@ module eth_pkt_type(
 		else
 			if(prev_pkt_type == PT_NONE && pkt_type == PT_UDP)
 					sync_lutched <= 1'b0;
-					
+
+	assign o_sync_lutched = sync_lutched;
+	
 	assign o_arp_sync = prev_pkt_type == PT_NONE && pkt_type == PT_ARP;
 	assign o_udp_sync = prev_pkt_type == PT_NONE && pkt_type == PT_UDP;
 	assign o_ping_sync = prev_pkt_type == PT_NONE && pkt_type == PT_PING;
@@ -105,6 +112,9 @@ module eth_pkt_type(
 		.o_def_wren(o_def_wren),
 		.i_def_rdy(i_def_rdy),
 		
+		.o_cmd_data(o_cmd_data),
+		.o_cmd_wren(o_cmd_wren),
+
 		.o_vrc_addr(o_vrc_addr),
 		.o_vrc_data(o_vrc_data),
 		.o_vrc_wren(o_vrc_wren)
