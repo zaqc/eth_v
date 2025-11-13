@@ -94,6 +94,7 @@ module gmac_init(
 				if(~|{gi_state} || ~i_wtrq)
 					case(gi_state)
 						GI_WAIT_PHY_RST: if(~i_rd_data[15]) gi_state <= GI_RD_MAC_CTRL_REG;
+						GI_SET_MAC_2: gi_state <= GI_RD_MAC_CTRL_REG;
 						GI_WR_MAC_CTRL_REG: gi_state <= GI_DONE;
 						GI_DONE: gi_state <= gi_state;
 						default: gi_state <= gi_state + 1'd1;
