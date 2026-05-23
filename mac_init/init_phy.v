@@ -50,7 +50,7 @@ module init_phy(
 				end
 	end
 	
-	phy_init_probe(.probe({4'd0, phy_state}));
+	//phy_init_probe(.probe({4'd0, phy_state}));
 
 	// src_mac = {8'h00, 8'h23, 8'h54, 8'h3C, 8'h47, 8'h1B};
 	always begin
