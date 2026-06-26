@@ -83,7 +83,7 @@ module emac_eth(
 	wire						mii_txen;
 	wire						mii_txer;
 
-	mac mac_unit(
+	emac mac_unit(
 		.reset(~rst_n),
 		.clk(sysclk),
 		
@@ -184,9 +184,9 @@ module emac_eth(
 		.o_tx_eop(tx_eop),
 		.i_tx_rdy(tx_rdy),
 		
-		.i_in_data(frame_data),
-		.i_in_vld(frame_vld),
-		.o_in_rdy(frame_rdy),
+		.i_in_data(i_frame_data),
+		.i_in_vld(i_frame_vld),
+		.o_in_rdy(o_frame_rdy),
 		
 		.o_def_addr(o_def_addr),
 		.o_def_data(o_def_data),

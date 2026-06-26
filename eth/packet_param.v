@@ -46,7 +46,7 @@ module packet_param(
 		if(~rst_n) begin			
 			self_mac <= {8'h00, 8'h22, 8'h36, 8'hEC, 8'h04, 8'h01};
 			//self_ip <= {8'd10, 8'd0, 8'd0, 8'd20}; // {8'd192, 8'd168, 8'd1, 8'd202}; 
-			self_ip <= {8'd192, 8'd168, 8'd1, 8'd11}; 
+			self_ip <= {8'd192, 8'd168, 8'd11, 8'd11}; 
 			
 			mcast_mac <= {8'h01, 8'h00, 8'h5e, 8'h4d, 8'hec, 8'h06};
 			mcast_ip = {8'd224, 8'd77, 8'd236, 8'd6};
