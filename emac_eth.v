@@ -184,13 +184,13 @@ module emac_eth(
 		.o_tx_eop(tx_eop),
 		.i_tx_rdy(tx_rdy),
 		
-		//.i_in_data(frame_data),
-		.i_in_vld(1'b1), //frame_vld),
-		//.o_in_rdy(frame_rdy),
+		.i_in_data(frame_data),
+		.i_in_vld(frame_vld),
+		.o_in_rdy(frame_rdy),
 		
-		//.o_def_addr(cmd_magic),
-		//.o_def_data(cmd_command),
-		//.o_def_wren(cmd_vld),
+		.o_def_addr(o_def_addr),
+		.o_def_data(o_def_data),
+		.o_def_wren(o_def_wren),
 		.i_def_rdy(1'b1), //cmd_rdy),
 		
 		.i_udp_pkt_len({i_frame_size[13:0], 2'b00})	// convert 32bit word to bytes (x4)

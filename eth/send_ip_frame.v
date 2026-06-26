@@ -57,17 +57,20 @@ module send_ip_frame(
 	parameter	[7:0]			ip_pkt_TTL = 8'hC8;				// pkt TTL
 	//parameter	[7:0]			ip_pkt_type = 8'd17;			// pkt UDP == 17
 	wire		[15:0]			ip_pkt_CRC;						// pkt flags
-	wire		[31:0]			tmp_crc;
-	wire		[31:0]			tmp_crc_one;
-	wire		[31:0]			tmp_crc_two;
-	wire		[31:0]			tmp_crc_three;
-	assign tmp_crc = ip_hdr1[31:16] + ip_hdr1[15:0] +
-		ip_hdr2[31:16] + ip_hdr2[15:0] + ip_hdr3[31:16] +
-		src_ip[31:16] + src_ip[15:0] + dst_ip[31:16] + dst_ip[15:0];
+//	wire		[31:0]			tmp_crc;
+//	wire		[31:0]			tmp_crc_one;
+//	wire		[31:0]			tmp_crc_two;
+//	wire		[31:0]			tmp_crc_three;
+//	assign tmp_crc = ip_hdr1[31:16] + ip_hdr1[15:0] +
+//		ip_hdr2[31:16] + ip_hdr2[15:0] + ip_hdr3[31:16] +
+//		src_ip[31:16] + src_ip[15:0] + dst_ip[31:16] + dst_ip[15:0];
 		
 	reg			[31:0]			crc_stage_one;
 	reg			[31:0]			crc_stage_two;
 	reg			[15:0]			crc_res;
+	
+	wire		[16:0]			crc_fold;
+	assign crc_fold = crc_stage_two[31:16] + crc_stage_two[15:0];
 	
 	always @ (posedge clk) begin
 		crc_stage_one <= ip_hdr1[31:16] + ip_hdr1[15:0] + ip_hdr2[31:16] + 
@@ -76,15 +79,15 @@ module send_ip_frame(
 		crc_stage_two <= crc_stage_one + src_ip[31:16] + src_ip[15:0] + 
 							dst_ip[31:16] + dst_ip[15:0];
 							
-		crc_res <= ~(crc_stage_two[31:16] + crc_stage_two[15:0] + 
-						((crc_stage_two[31:16] + crc_stage_two[15:0]) >> 16));
+		crc_res <= crc_fold[15:0] + crc_fold[16];
 	end
 		
-	assign tmp_crc_one = tmp_crc[31:16] + tmp_crc[15:0];
-	assign tmp_crc_two = tmp_crc_one[31:16] + tmp_crc_one[15:0];
+	//assign tmp_crc_one = tmp_crc[31:16] + tmp_crc[15:0];
+	//assign tmp_crc_two = tmp_crc_one[31:16] + tmp_crc_one[15:0];
 	//assign tmp_crc_three = tmp_crc_two[31:16] + tmp_crc_two[15:0];
 	//assign ip_pkt_CRC = ~(tmp_crc_two[31:16] + tmp_crc_two[15:0]);
-	assign ip_pkt_CRC = crc_res; // !!!! ~(tmp_crc_two[31:16] + tmp_crc_two[15:0]);
+	//assign ip_pkt_CRC = ~(crc_fold[15:0] + crc_fold[16]); // !!!! ~(tmp_crc_two[31:16] + tmp_crc_two[15:0]);
+	assign ip_pkt_CRC = ~crc_res;
 	wire			[31:0]		ip_hdr3;	
 	//assign ip_hdr3 = {ip_pkt_TTL, ip_pkt_type, ip_pkt_CRC};
 	assign ip_hdr3 = {ip_pkt_TTL, protocol, ip_pkt_CRC};
