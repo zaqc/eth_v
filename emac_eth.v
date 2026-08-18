@@ -82,17 +82,28 @@ module emac_eth(
 	wire		[3:0]			mii_txd;
 	wire						mii_txen;
 	wire						mii_txer;
+	
+`define Q_13_1
 
 	emac mac_unit(
 		.reset(~rst_n),
 		.clk(sysclk),
-		
+
+`ifdef Q_13_1
+		.address(phy_ctr_addr),
+		.readdata(phy_ctr_rd_data),
+		.read(phy_ctr_rd),
+		.writedata(phy_ctr_wr_data),
+		.write(phy_ctr_wr),
+		.waitrequest(phy_ctr_waitreqest),
+`else
 		.reg_addr(phy_ctr_addr),
 		.reg_data_out(phy_ctr_rd_data),
 		.reg_rd(phy_ctr_rd),
 		.reg_data_in(phy_ctr_wr_data),
 		.reg_wr(phy_ctr_wr),
 		.reg_busy(phy_ctr_waitreqest),
+`endif
 
 //		.address(phy_ctr_addr),
 //		.readdata(phy_ctr_rd_data),
@@ -134,8 +145,24 @@ module emac_eth(
 		.ff_rx_dval(rx_vld),
 		.ff_rx_sop(rx_sop),
 		.ff_rx_eop(rx_eop),
-		.ff_rx_rdy(1'b1) //rx_rdy)
+		.ff_rx_rdy(rx_rdy)
 	);
+	
+//	reg			[9:0]			rx_addr;
+//	
+//	always @ (posedge sysclk or negedge rst_n)
+//		if(~rst_n)
+//			rx_addr <= 10'd0;
+//		else
+//			if(rx_vld)
+//				rx_addr <= rx_addr + 1'd1;
+//	
+//	rx_buf rx_buf_unit(
+//		.clock(sysclk),
+//		.address(rx_addr),
+//		.data(rx_data),
+//		.wren(rx_vld)
+//	);
 
 	mii2rmii mii2rmii_unit(
 		.RefClk(i_refclk), // clk50), // refclko),
