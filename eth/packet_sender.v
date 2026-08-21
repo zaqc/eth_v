@@ -97,13 +97,13 @@ module packet_sender(
 		.o_mcast_ip(mcast_ip),
 		
 		.o_udp_src_port(udp_src_port),
-		//.o_udp_dst_port(udp_dst_port),
+		.o_udp_dst_port(udp_dst_port),
 	
 		.o_udp_pkt_len(udp_pkt_len),
 		.o_udp_start_addr(udp_start_addr)
 	);
 	
-	assign udp_dst_port = i_dst_port;	// !!!!!!!!!!!!!! UDP Dst Port !!!!!!!!!!!!!!
+	// assign udp_dst_port = i_dst_port;	// !!!!!!!!!!!!!! UDP Dst Port !!!!!!!!!!!!!!
 
 	wire						arp_ready;	// module ready
 	wire						udp_ready;
