@@ -1,7 +1,9 @@
 module packet_sender(
 	input						rst_n,
 	input						clk,
-	
+
+	output						o_ps_ready,
+
 	input						i_sync,		// sync for UDP Packet Send
 
 	input		[7:0]			i_eb_addr,
@@ -22,6 +24,8 @@ module packet_sender(
 	input						i_rx_eop,
 	output						o_rx_rdy,
 	
+	//input		[15:0]			i_dst_port,	// old stuff definition
+
 	input		[31:0]			i_in_data,	// Data Stream to Send
 	input						i_in_vld,
 	output						o_in_rdy,
@@ -31,15 +35,34 @@ module packet_sender(
 	output						o_def_wren,
 	input						i_def_rdy,
 	
+	output		[31:0]			o_cmd_data,
+	output						o_cmd_wren,
+
+	
 	output		[31:0]			o_vrc_data,
 	output		[5:0]			o_vrc_addr,
 	output		[1:0]			o_vrc_wren,
 	
 	output		[3:0]			o_arp_blink,
 	
-	input		[15:0]			i_udp_pkt_len
+	input		[15:0]			i_udp_pkt_len,
+	
+	input						i_set_eth_param,
+	input		[31:0]			i_self_ip,
+	input		[47:0]			i_self_mac,
+	input		[31:0]			i_mcast_ip,
+	input		[47:0]			i_mcast_mac,
+	input		[15:0]			i_src_port,
+	input		[15:0]			i_dst_port,
+	
+	output		[47:0]			o_self_mac
 );
 	`include "packet_type.h"
+
+	assign o_self_mac = self_mac;
+	
+	wire						sync_lutched;
+	assign o_ps_ready = pkt_type == PT_NONE & ~sync_lutched;
 
 	wire		[1:0]			pkt_type;
 
@@ -89,9 +112,19 @@ module packet_sender(
 		.o_udp_dst_port(udp_dst_port),
 	
 		.o_udp_pkt_len(udp_pkt_len),
-		.o_udp_start_addr(udp_start_addr)
+		.o_udp_start_addr(udp_start_addr),
+		
+		.i_set_eth_param(i_set_eth_param),
+		.i_self_ip(i_self_ip),
+		.i_self_mac(i_self_mac),
+		.i_mcast_ip(i_mcast_ip),
+		.i_mcast_mac(i_mcast_mac),
+		.i_src_port(i_src_port),
+		.i_dst_port(i_dst_port)
 	);
 	
+	//assign udp_dst_port = i_dst_port;	// !!!!!!!!!!!!!! UDP Dst Port !!!!!!!!!!!!!!
+
 	wire						arp_ready;	// module ready
 	wire						udp_ready;
 	wire						ping_ready;
@@ -109,6 +142,8 @@ module packet_sender(
 	eth_pkt_type eth_pkt_type_unit(
 		.rst_n(rst_n),
 		.clk(clk),
+		
+		.o_sync_lutched(sync_lutched),
 		
 		.i_sync(i_sync),
 		
@@ -145,6 +180,9 @@ module packet_sender(
 		.o_def_wren(o_def_wren),
 		.i_def_rdy(i_def_rdy),
 		
+		.o_cmd_data(o_cmd_data),
+		.o_cmd_wren(o_cmd_wren),
+
 		.o_vrc_addr(o_vrc_addr),
 		.o_vrc_data(o_vrc_data),
 		.o_vrc_wren(o_vrc_wren)
@@ -193,10 +231,10 @@ module packet_sender(
 		.rst_n(rst_n),
 		.clk(clk),
 		
-		.i_dst_mac(48'hFFFFFFFFFFFF), //mcast_mac),
+		.i_dst_mac(mcast_mac),
 		.i_src_mac(self_mac),
 		
-		.i_dst_ip(32'hFFFFFFFF), //mcast_ip),
+		.i_dst_ip(mcast_ip),
 		.i_src_ip(self_ip),
 		
 		.i_src_port(udp_src_port),

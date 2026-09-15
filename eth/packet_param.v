@@ -16,7 +16,15 @@ module packet_param(
 	output		[15:0]			o_udp_dst_port,
 		
 	output		[15:0]			o_udp_pkt_len,
-	output		[15:0]			o_udp_start_addr
+	output		[15:0]			o_udp_start_addr,
+	
+	input						i_set_eth_param,
+	input		[31:0]			i_self_ip,
+	input		[47:0]			i_self_mac,
+	input		[31:0]			i_mcast_ip,
+	input		[47:0]			i_mcast_mac,
+	input		[15:0]			i_src_port,
+	input		[15:0]			i_dst_port
 );
 
 	reg			[47:0]			self_mac;
@@ -46,7 +54,7 @@ module packet_param(
 		if(~rst_n) begin			
 			self_mac <= {8'h00, 8'h22, 8'h36, 8'hEC, 8'h04, 8'h01};
 			//self_ip <= {8'd10, 8'd0, 8'd0, 8'd20}; // {8'd192, 8'd168, 8'd1, 8'd202}; 
-			self_ip <= {8'd192, 8'd168, 8'd1, 8'd11}; 
+			self_ip <= {8'd192, 8'd168, 8'd11, 8'd11}; 
 			
 			mcast_mac <= {8'h01, 8'h00, 8'h5e, 8'h4d, 8'hec, 8'h06};
 			mcast_ip = {8'd224, 8'd77, 8'd236, 8'd6};
@@ -57,20 +65,29 @@ module packet_param(
 			udp_start_addr <= 16'd0;			
 		end
 		else
-			if(i_eb_wr) begin
-				case(i_eb_addr[3:0])
-					4'h1: self_mac[47:16] <= i_eb_wr_data;
-					4'h2: self_mac[15:0] <= i_eb_wr_data[15:0];
-					4'h3: self_ip <= i_eb_wr_data;
-					
-					4'h4: mcast_mac[47:16] <= i_eb_wr_data;
-					4'h5: mcast_mac[15:0] <= i_eb_wr_data[15:0];
-					4'h6: mcast_ip <= i_eb_wr_data;
-										
-					4'h7: udp_src_port <= i_eb_wr_data[15:0];
-					4'h8: udp_dst_port <= i_eb_wr_data[15:0];
-					4'h9: udp_pkt_len <= i_eb_wr_data[15:0];
-					4'hA: udp_start_addr <= i_eb_wr_data[15:0];
-				endcase
+			if(i_set_eth_param) begin
+				self_mac <= i_self_mac;
+				self_ip <= i_self_ip;
+				mcast_mac <= i_mcast_mac;
+				mcast_ip <= i_mcast_ip;
+				udp_src_port <= i_src_port;
+				udp_dst_port <= i_dst_port;
 			end
+			else
+				if(i_eb_wr) begin
+					case(i_eb_addr[3:0])
+						4'h1: self_mac[47:16] <= i_eb_wr_data;
+						4'h2: self_mac[15:0] <= i_eb_wr_data[15:0];
+						4'h3: self_ip <= i_eb_wr_data;
+						
+						4'h4: mcast_mac[47:16] <= i_eb_wr_data;
+						4'h5: mcast_mac[15:0] <= i_eb_wr_data[15:0];
+						4'h6: mcast_ip <= i_eb_wr_data;
+											
+						4'h7: udp_src_port <= i_eb_wr_data[15:0];
+						4'h8: udp_dst_port <= i_eb_wr_data[15:0];
+						4'h9: udp_pkt_len <= i_eb_wr_data[15:0];
+						4'hA: udp_start_addr <= i_eb_wr_data[15:0];
+					endcase
+				end
 endmodule
