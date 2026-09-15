@@ -24,7 +24,7 @@ module packet_sender(
 	input						i_rx_eop,
 	output						o_rx_rdy,
 	
-	input		[15:0]			i_dst_port,
+	//input		[15:0]			i_dst_port,	// old stuff definition
 
 	input		[31:0]			i_in_data,	// Data Stream to Send
 	input						i_in_vld,
@@ -45,10 +45,22 @@ module packet_sender(
 	
 	output		[3:0]			o_arp_blink,
 	
-	input		[15:0]			i_udp_pkt_len
+	input		[15:0]			i_udp_pkt_len,
+	
+	input						i_set_eth_param,
+	input		[31:0]			i_self_ip,
+	input		[47:0]			i_self_mac,
+	input		[31:0]			i_mcast_ip,
+	input		[47:0]			i_mcast_mac,
+	input		[15:0]			i_src_port,
+	input		[15:0]			i_dst_port,
+	
+	output		[47:0]			o_self_mac
 );
 	`include "packet_type.h"
 
+	assign o_self_mac = self_mac;
+	
 	wire						sync_lutched;
 	assign o_ps_ready = pkt_type == PT_NONE & ~sync_lutched;
 
@@ -97,13 +109,21 @@ module packet_sender(
 		.o_mcast_ip(mcast_ip),
 		
 		.o_udp_src_port(udp_src_port),
-		//.o_udp_dst_port(udp_dst_port),
+		.o_udp_dst_port(udp_dst_port),
 	
 		.o_udp_pkt_len(udp_pkt_len),
-		.o_udp_start_addr(udp_start_addr)
+		.o_udp_start_addr(udp_start_addr),
+		
+		.i_set_eth_param(i_set_eth_param),
+		.i_self_ip(i_self_ip),
+		.i_self_mac(i_self_mac),
+		.i_mcast_ip(i_mcast_ip),
+		.i_mcast_mac(i_mcast_mac),
+		.i_src_port(i_src_port),
+		.i_dst_port(i_dst_port)
 	);
 	
-	assign udp_dst_port = i_dst_port;	// !!!!!!!!!!!!!! UDP Dst Port !!!!!!!!!!!!!!
+	//assign udp_dst_port = i_dst_port;	// !!!!!!!!!!!!!! UDP Dst Port !!!!!!!!!!!!!!
 
 	wire						arp_ready;	// module ready
 	wire						udp_ready;

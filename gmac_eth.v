@@ -10,9 +10,9 @@ module gmac_eth(
 	
 	input		[15:0]			i_frame_size,
 	
-	output		[31:0]			o_def_addr,
-	output		[31:0]			o_def_data,
-	output						o_def_wren,
+	output		[31:0]			o_cmd_addr,
+	output		[31:0]			o_cmd_data,
+	output						o_cmd_vld,
 	
 	input						i_rxclk,
 	input		[3:0]			i_rxd,
@@ -23,7 +23,15 @@ module gmac_eth(
 	output						o_txctl,
 	
 	output						o_mdc,
-	inout						io_mdio
+	inout						io_mdio,
+	
+	input						i_set_eth_param,
+	input		[31:0]			i_self_ip,
+	input		[47:0]			i_self_mac,
+	input		[31:0]			i_mcast_ip,
+	input		[47:0]			i_mcast_mac,
+	input		[15:0]			i_src_port,
+	input		[15:0]			i_dst_port
 );
 
 	wire		[7:0]			gmac_addr;
@@ -33,9 +41,14 @@ module gmac_eth(
 	wire						gmac_wr;
 	wire						gmac_wtrq;
 	
+	wire		[47:0]			self_mac;
+		
 	gmac_init gmac_init_unit(
 		.rst_n(rst_n),
 		.clk(sysclk),
+		
+		.i_init(i_set_eth_param),
+		.i_mac_addr(self_mac),
 		
 		.o_addr(gmac_addr),
 		.o_wr_data(gmac_wr_data),
@@ -125,16 +138,26 @@ module gmac_eth(
 		.o_tx_eop(tx_eop),
 		.i_tx_rdy(tx_rdy),
 		
-		//.i_in_data(frame_data),
-		.i_in_vld(1'b1), //frame_vld),
-		//.o_in_rdy(frame_rdy),
+		.i_in_data(i_frame_data),
+		.i_in_vld(i_frame_vld),
+		.o_in_rdy(o_frame_rdy),
 		
-		//.o_def_addr(cmd_magic),
-		//.o_def_data(cmd_command),
-		//.o_def_wren(cmd_vld),
+		.o_def_addr(o_cmd_addr),
+		.o_def_data(o_cmd_data),
+		.o_def_wren(o_cmd_vld),
 		.i_def_rdy(1'b1), //cmd_rdy),
 		
-		.i_udp_pkt_len({i_frame_size[13:0], 2'b00})	// convert 32bit word to bytes (x4)
+		.i_udp_pkt_len({i_frame_size[13:0], 2'b00}),	// convert 32bit word to bytes (x4)
+		
+		.i_set_eth_param(i_set_eth_param),
+		.i_self_ip(i_self_ip),
+		.i_self_mac(i_self_mac),
+		.i_mcast_ip(i_mcast_ip),
+		.i_mcast_mac(i_mcast_mac),
+		.i_src_port(i_src_port),
+		.i_dst_port(i_dst_port),
+		
+		.o_self_mac(self_mac)
 	);
 
 endmodule
