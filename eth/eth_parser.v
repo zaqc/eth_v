@@ -248,7 +248,7 @@ module eth_parser(
 						// 5'd17:
 						RS_UDP_PORT: recv_state <= (udp_src_port == 16'd14057 && udp_dst_port == 16'd17814) ? RS_UDP_CMD_ADDR : 5'h1F;
 						
-						RS_UDP_CMD_ADDR: recv_state <= (i_in_data[7:0] == 8'h08) ? RS_COMM_DATA : RS_UDP_CMD_DATA;
+						RS_UDP_CMD_ADDR: recv_state <= /*(i_in_data[7:0] == 8'h08) ? RS_COMM_DATA :*/ RS_UDP_CMD_DATA;
 						
 						RS_UDP_CMD_DATA: recv_state <= RS_UDP_COMMAND;
 						
