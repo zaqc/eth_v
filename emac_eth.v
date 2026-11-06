@@ -1,8 +1,14 @@
-module emac_eth(
+module emac_eth #(
+	parameter					DYNAMIC_PORTS = "FALSE"
+) 
+(
 	input						rst_n,
 	input						sysclk,
 	
 	input						i_sync,
+	
+	input		[15:0]			i_udp_src_port,
+	input		[15:0]			i_udp_dst_port,
 	
 	input		[31:0]			i_frame_data,
 	input						i_frame_vld,
@@ -193,11 +199,16 @@ module emac_eth(
 		.ena_10(1'b0)
 	);
 
-	packet_sender packet_sender_unit(
+	packet_sender #(
+		.DYNAMIC_PORTS(DYNAMIC_PORTS)
+	) packet_sender_unit (
 		.rst_n(rst_n),
 		.clk(sysclk),
 		
 		.i_sync(i_sync),
+		
+		.i_udp_src_port(i_udp_src_port),
+		.i_udp_dst_port(i_udp_dst_port),
 
 		.i_rx_data(rx_data),
 		.i_rx_vld(rx_vld),

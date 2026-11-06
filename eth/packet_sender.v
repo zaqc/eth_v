@@ -1,10 +1,17 @@
-module packet_sender(
+module packet_sender
+#(
+	parameter					DYNAMIC_PORTS = "FALSE"
+)
+(
 	input						rst_n,
 	input						clk,
 
 	output						o_ps_ready,
 
 	input						i_sync,		// sync for UDP Packet Send
+	
+	input		[15:0]			i_udp_src_port,
+	input		[15:0]			i_udp_dst_port,
 
 	input		[7:0]			i_eb_addr,
 	input		[31:0]			i_eb_wr_data,
@@ -237,8 +244,8 @@ module packet_sender(
 		.i_dst_ip(mcast_ip),
 		.i_src_ip(self_ip),
 		
-		.i_src_port(udp_src_port),
-		.i_dst_port(udp_dst_port),
+		.i_src_port(DYNAMIC_PORTS == "TRUE" ? i_udp_src_port : udp_src_port),
+		.i_dst_port(DYNAMIC_PORTS == "TRUE" ? i_udp_dst_port : udp_dst_port),
 		
 		.i_data_len(i_udp_pkt_len),
 		
