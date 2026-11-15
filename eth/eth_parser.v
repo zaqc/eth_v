@@ -27,14 +27,11 @@ module eth_parser(
 	output		[31:0]			o_def_addr,
 	output		[31:0]			o_def_data,
 	output						o_def_wren,
-	input						i_def_rdy,
-	
-	output		[31:0]			o_cmd_data,
-	output						o_cmd_wren,
-	
-	output		[31:0]			o_vrc_data,
-	output		[5:0]			o_vrc_addr,
-	output		[1:0]			o_vrc_wren
+//	input						i_def_rdy,
+		
+	output		[31:0]			o_sync_master_frame,
+	output		[31:0]			o_sync_tick_count,
+	output						o_sync_strobe
 );
 
 	assign o_arp_req_flag = arp_req_flag;
@@ -47,6 +44,7 @@ module eth_parser(
 	
 	assign o_def_addr = def_addr;
 	assign o_def_data = def_data;
+	assign o_def_wren = def_wren;
 		
 	assign o_in_rdy = ~rst_n ? 1'b0 : 1'b1;
 								
@@ -96,21 +94,7 @@ module eth_parser(
 	reg			[15:0]			icmp_crc;
 	reg			[15:0]			icmp_id;
 	reg			[15:0]			icmp_seq;
-	
-	reg			[31:0]			tmp_def_addr;
-	reg			[31:0]			tmp_def_data;
-	
-	reg			[6:0]			vrc_addr;
-	assign o_vrc_addr = vrc_addr[5:0];
-	assign o_vrc_data = i_in_data;
-	assign o_vrc_wren = 1'b0; //~vrc_addr[6] && recv_state == RS_FILL_VRCH /*5'd26*/ && i_in_vld ? 
-				//tmp_def_data[7:0] == 8'h0F ? 2'b10 : 
-				//tmp_def_data[7:0] == 8'hF0 ? 2'b01 : 2'b00 : 2'b00;
-				
-				
-	assign o_cmd_data = i_in_data;
-	assign o_cmd_wren = recv_state == RS_COMM_DATA && udp_data_cntr < udp_data_len;
-		
+			
 	always @ (posedge clk)
 		if(i_in_vld) begin
 			case(recv_state)
@@ -141,26 +125,11 @@ module eth_parser(
 				5'd17: 
 					begin	
 						{udp_data_len, udp_data_crc} <= i_in_data;
-						udp_data_cntr <= 16'd8;
 					end
 				
 				// ICMP
 				5'd18: {icmp_type, icmp_code, icmp_crc} <= i_in_data;
-				5'd19: {icmp_id, icmp_seq} <= i_in_data;
-				
-				// UDP Payload
-				5'd24: 
-					begin
-						tmp_def_addr <= i_in_data;
-						udp_data_cntr <= udp_data_cntr + 4;
-					end
-					
-				RS_COMM_DATA:
-					if(udp_data_cntr < udp_data_len)
-						udp_data_cntr <= udp_data_cntr + 4;
-					
-				RS_UDP_CMD_DATA: tmp_def_data <= i_in_data;
-				
+				5'd19: {icmp_id, icmp_seq} <= i_in_data;				
 			endcase
 			
 			if(i_in_eop) begin					
@@ -191,11 +160,20 @@ module eth_parser(
 								RS_ARP_PKT = 5'd10,
 								RS_UDP_ICMP = 5'd15,
 								RS_UDP_PORT = 5'd17,
-								RS_ICMP_PAYLOAD = 5'd20,
-								RS_UDP_CMD_ADDR = 5'd24,
+								
+								RS_ICMP_PAYLOAD = 5'd20,		// Ping
+								
+								RS_UDP_CMD_ADDR = 5'd24,		// Control Command
 								RS_UDP_CMD_DATA = 5'd25,
-								RS_COMM_DATA= 5'd26,
-								RS_UDP_COMMAND = 5'd27;
+								RS_UDP_COMMAND_DONE = 5'd26,
+								
+								RS_UDP_SYNC_MAGIC_WORD = 5'd27,	// Sync From Ethernet
+								RS_UDP_SYNC_MASTER_FRAME = 5'd28,
+								RS_UDP_SYNC_TICK_TIME = 5'd29,
+								RS_UDP_SYNC_DONE = 5'd30,
+								
+								RS_WAIT_EOP = 5'h1F;
+								
 			
 	ping_payload ping_payload_unit(
 		.rst_n(rst_n),
@@ -214,10 +192,24 @@ module eth_parser(
 	
 	// port_probe port_probe_unit(.probe({udp_src_port, udp_dst_port}));
 	
+	reg			[31:0]			def_addr;
+	reg			[31:0]			def_data;
+	reg			[0:0]			def_wren;
+	
+	reg			[31:0]			sync_master_frame;
+	reg			[31:0]			sync_tick_count;
+	reg			[0:0]			sync_strobe;
+	
 	always @ (posedge clk or negedge rst_n)
-		if(~rst_n)
+		if(~rst_n) begin
 			recv_state <= 5'd0;
-		else			
+			def_wren <= 1'b0;
+			sync_strobe <= 1'b0;
+		end
+		else begin
+			def_wren <= 1'b0;
+			sync_strobe <= 1'b0;
+			
 			if(i_in_vld)
 				if(i_in_eop)
 					recv_state <= 5'd0;
@@ -246,21 +238,46 @@ module eth_parser(
 							endcase
 							
 						// 5'd17:
-						RS_UDP_PORT: recv_state <= (udp_src_port == 16'd14057 && udp_dst_port == 16'd17814) ? RS_UDP_CMD_ADDR : 5'h1F;
+						RS_UDP_PORT: 
+							recv_state <= (udp_src_port == 16'd14057 && udp_dst_port == 16'd17814) ? RS_UDP_CMD_ADDR : 
+							recv_state <= (udp_src_port == 16'd17065 && udp_dst_port == 16'd14328 && 
+								src_ip == {8'd192, 8'd168, 8'd1, 8'd35} && 
+								dst_ip == {8'd192, 8'd168, 8'd1, 8'd255}) ? RS_UDP_SYNC_MAGIC_WORD : 5'h1F;
 						
-						RS_UDP_CMD_ADDR: recv_state <= /*(i_in_data[7:0] == 8'h08) ? RS_COMM_DATA :*/ RS_UDP_CMD_DATA;
+						RS_UDP_CMD_ADDR: begin
+							def_addr <= i_in_data;
+							recv_state <= RS_UDP_CMD_DATA;
+						end
+						RS_UDP_CMD_DATA: begin
+							def_data <= i_in_data;
+							recv_state <= RS_UDP_COMMAND_DONE;
+						end
+						RS_UDP_COMMAND_DONE: begin
+							def_wren <= 1'b1;
+							recv_state <= RS_WAIT_EOP;
+						end
 						
-						RS_UDP_CMD_DATA: recv_state <= RS_UDP_COMMAND;
+						RS_UDP_SYNC_MAGIC_WORD: recv_state <= i_in_data == 32'hFAD08888 ? RS_UDP_SYNC_MASTER_FRAME : 5'h1F;
+						RS_UDP_SYNC_MASTER_FRAME: begin
+							sync_master_frame <= i_in_data;
+							recv_state <= RS_UDP_SYNC_TICK_TIME;
+						end
+						RS_UDP_SYNC_TICK_TIME: begin
+							sync_tick_count <= i_in_data;
+							recv_state <= RS_UDP_SYNC_DONE;
+						end
+						RS_UDP_SYNC_DONE: begin
+							sync_strobe <= 1'b1;
+							recv_state <= RS_WAIT_EOP;
+						end
 						
-						//RS_UDP_VRCH_HDR: recv_state <= (tmp_def_addr == 32'hAA0FF055 && tmp_def_data[31:8] == 24'hACCA55) ? RS_FILL_VRCH /*5'd26*/ : RS_UDP_COMMAND /*5'h27*/;
-						//RS_UDP_VRCH_HDR: recv_state <= (tmp_def_addr == 32'hAA0FF055 && i_in_data[31:8] == 24'hACCA55) ? RS_FILL_VRCH /*5'd26*/ : RS_UDP_COMMAND /*5'h27*/;
-						
-						default: // recv_state 5'd20 - receive ICMP Ping Payload
-							recv_state <= ~&{recv_state} 
-									&& recv_state != RS_ICMP_PAYLOAD /*5'd20*/
-									&& recv_state != RS_COMM_DATA /*5'd26*/
-									&& recv_state != RS_UDP_COMMAND /*5'd27*/ ? recv_state + 1'd1 : recv_state;
+						RS_WAIT_EOP,
+						RS_ICMP_PAYLOAD: recv_state <= recv_state;
+												
+						default:
+							recv_state <= recv_state + 1'd1;
 					endcase
+		end
 
 	reg			[0:0]			arp_req_flag;
 	reg			[47:0]			arp_req_mac;
@@ -282,25 +299,6 @@ module eth_parser(
 				if(i_clear_arp_req)
 					arp_req_flag <= 1'b0;
 					
-	reg			[0:0]			udp_cmd_flag;
-	reg			[31:0]			def_addr;
-	reg			[31:0]			def_data;
-	reg			[0:0]			def_wren;
-	
-	always @ (posedge clk or negedge rst_n)
-		if(~rst_n) 
-			def_wren <= 1'd0;
-		else
-			if(i_in_vld & i_in_eop && recv_state == RS_UDP_COMMAND /*5'd27*/) begin
-				def_wren <= 1'b1;
-				def_addr <= tmp_def_addr;
-				def_data <= tmp_def_data;
-			end
-			else
-				if(i_def_rdy)
-					def_wren <= 1'b0;
-					
-	assign o_def_wren = def_wren;
 			
 	reg			[0:0]			ping_req_flag;
 	reg			[47:0]			ping_req_mac;

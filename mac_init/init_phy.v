@@ -2,6 +2,8 @@ module init_phy(
 	input						clk,
 	input						rst_n,
 	
+	input		[47:0]			i_self_mac,
+	
 	output		[7:0]			o_phy_ctr_addr,
 	output		[31:0]			o_phy_ctr_wr_data,
 	output						o_phy_ctr_wr,
@@ -53,6 +55,13 @@ module init_phy(
 	//phy_init_probe(.probe({4'd0, phy_state}));
 
 	// src_mac = {8'h00, 8'h23, 8'h54, 8'h3C, 8'h47, 8'h1B};
+	
+	wire		[31:0]			mac_hi;
+	assign mac_hi = {i_self_mac[23:16], i_self_mac[31:24], i_self_mac[39:32], i_self_mac[47:40]};
+	
+	wire		[31:0]			mac_lo;
+	assign mac_lo = {32'd0, i_self_mac[7:0], i_self_mac[15:8]};
+	
 	always begin
 		phy_ctr_addr = 8'd0;
 		phy_ctr_wr_data = 32'h00000000;
@@ -68,14 +77,13 @@ module init_phy(
 			end				
 			4'd1: begin
 				phy_ctr_addr = 8'd03;
-				// phy_ctr_wr_data = 32'h11362200;
-				phy_ctr_wr_data = 32'h3C542300;
+				phy_ctr_wr_data = mac_hi; // 32'h3C542300;
 				phy_ctr_wr = 1'b1;
 				phy_ctr_rd = 1'b0;
 			end
 			4'd2: begin
 				phy_ctr_addr = 8'd04;
-				phy_ctr_wr_data = 32'h00001B47;
+				phy_ctr_wr_data = mac_lo; // 32'h00001B47;
 				phy_ctr_wr = 1'b1;
 				phy_ctr_rd = 1'b0;
 			end

@@ -45,10 +45,14 @@ module emac_eth #(
 	wire		[31:0]			phy_ctr_rd_data;
 	wire						phy_ctr_rd;
 	wire						phy_ctr_waitreqest;
+	
+	wire		[47:0]			self_mac;
 
 	init_phy init_phy_u0(
 		.clk(sysclk),
 		.rst_n(rst_n),
+		
+		.i_self_mac(self_mac),
 
 		.o_phy_ctr_addr(phy_ctr_addr),
 		.o_phy_ctr_wr_data(phy_ctr_wr_data),
@@ -231,7 +235,9 @@ module emac_eth #(
 		.o_def_wren(o_def_wren),
 		.i_def_rdy(1'b1), //cmd_rdy),
 		
-		.i_udp_pkt_len({i_frame_size[13:0], 2'b00})	// convert 32bit word to bytes (x4)
+		.i_udp_pkt_len({i_frame_size[13:0], 2'b00}),	// convert 32bit word to bytes (x4)
+		
+		.o_self_mac(self_mac)
 	);
 
 endmodule

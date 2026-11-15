@@ -109,15 +109,15 @@ module eth_pkt_type(
 		
 		.o_def_addr(o_def_addr),
 		.o_def_data(o_def_data),
-		.o_def_wren(o_def_wren),
-		.i_def_rdy(i_def_rdy),
+		.o_def_wren(o_def_wren)
+		//.i_def_rdy(i_def_rdy),
 		
-		.o_cmd_data(o_cmd_data),
-		.o_cmd_wren(o_cmd_wren),
+		//.o_cmd_data(o_cmd_data),
+		//.o_cmd_wren(o_cmd_wren),
 
-		.o_vrc_addr(o_vrc_addr),
-		.o_vrc_data(o_vrc_data),
-		.o_vrc_wren(o_vrc_wren)
+		//.o_vrc_addr(o_vrc_addr),
+		//.o_vrc_data(o_vrc_data),
+		//.o_vrc_wren(o_vrc_wren)
 	);
 	
 	wire						arp_ready_rise;
