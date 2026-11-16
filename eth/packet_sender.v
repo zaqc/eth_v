@@ -42,13 +42,13 @@ module packet_sender
 	output						o_def_wren,
 	input						i_def_rdy,
 	
-	output		[31:0]			o_cmd_data,
-	output						o_cmd_wren,
-
-	
-	output		[31:0]			o_vrc_data,
-	output		[5:0]			o_vrc_addr,
-	output		[1:0]			o_vrc_wren,
+//	output		[31:0]			o_cmd_data,
+//	output						o_cmd_wren,
+//
+//	
+//	output		[31:0]			o_vrc_data,
+//	output		[5:0]			o_vrc_addr,
+//	output		[1:0]			o_vrc_wren,
 	
 	output		[3:0]			o_arp_blink,
 	
@@ -62,7 +62,11 @@ module packet_sender
 	input		[15:0]			i_src_port,
 	input		[15:0]			i_dst_port,
 	
-	output		[47:0]			o_self_mac
+	output		[47:0]			o_self_mac,
+	
+	output		[31:0]			o_sync_master_frame,
+	output		[31:0]			o_sync_tick_count,
+	output		[31:0]			o_sync_strobe	
 );
 	`include "packet_type.h"
 
@@ -187,12 +191,16 @@ module packet_sender
 		.o_def_wren(o_def_wren),
 		.i_def_rdy(i_def_rdy),
 		
-		.o_cmd_data(o_cmd_data),
-		.o_cmd_wren(o_cmd_wren),
-
-		.o_vrc_addr(o_vrc_addr),
-		.o_vrc_data(o_vrc_data),
-		.o_vrc_wren(o_vrc_wren)
+//		.o_cmd_data(o_cmd_data),
+//		.o_cmd_wren(o_cmd_wren),
+//
+//		.o_vrc_addr(o_vrc_addr),
+//		.o_vrc_data(o_vrc_data),
+//		.o_vrc_wren(o_vrc_wren),
+		
+		.o_sync_master_frame(o_sync_master_frame),
+		.o_sync_tick_count(o_sync_tick_count),
+		.o_sync_strobe(o_sync_strobe)
 	);
 	
 	//------------------------------------------------------------------------

@@ -33,7 +33,11 @@ module emac_eth #(
 	input 						i_rxer,
 	
 	output						o_mdc,
-	inout						io_mdio
+	inout						io_mdio,
+	
+	output		[31:0]			o_sync_master_frame,
+	output		[31:0]			o_sync_tick_count,
+	output		[31:0]			o_sync_strobe
 );
 
 	//assign o_refclk = i_refclk;
@@ -237,7 +241,11 @@ module emac_eth #(
 		
 		.i_udp_pkt_len({i_frame_size[13:0], 2'b00}),	// convert 32bit word to bytes (x4)
 		
-		.o_self_mac(self_mac)
+		.o_self_mac(self_mac),
+		
+		.o_sync_master_frame(o_sync_master_frame),
+		.o_sync_tick_count(o_sync_tick_count),
+		.o_sync_strobe(o_sync_strobe)
 	);
 
 endmodule

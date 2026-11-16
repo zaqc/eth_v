@@ -200,6 +200,16 @@ module eth_parser(
 	reg			[31:0]			sync_tick_count;
 	reg			[0:0]			sync_strobe;
 	
+	reg			[31:0]			magic_word;
+	reg			[31:0]			ssip;
+	reg			[31:0]			sdip;
+	reg			[15:0]			sp;
+	reg			[15:0]			dp;
+	
+	assign o_sync_master_frame = sync_master_frame;
+	assign o_sync_tick_count = sync_tick_count;
+	assign o_sync_strobe = sync_strobe;
+	
 	always @ (posedge clk or negedge rst_n)
 		if(~rst_n) begin
 			recv_state <= 5'd0;
@@ -238,11 +248,20 @@ module eth_parser(
 							endcase
 							
 						// 5'd17:
-						RS_UDP_PORT: 
-							recv_state <= (udp_src_port == 16'd14057 && udp_dst_port == 16'd17814) ? RS_UDP_CMD_ADDR : 
-							recv_state <= (udp_src_port == 16'd17065 && udp_dst_port == 16'd14328 && 
-								src_ip == {8'd192, 8'd168, 8'd1, 8'd35} && 
-								dst_ip == {8'd192, 8'd168, 8'd1, 8'd255}) ? RS_UDP_SYNC_MAGIC_WORD : 5'h1F;
+						RS_UDP_PORT: begin
+							if(udp_src_port == 16'd14057 && udp_dst_port == 16'd17814)
+								recv_state <= RS_UDP_CMD_ADDR;
+							else
+								if(udp_src_port == 16'd17065 && udp_dst_port == 16'd14328)
+									recv_state <= RS_UDP_SYNC_MAGIC_WORD;
+								else
+									recv_state <= RS_WAIT_EOP;
+								
+							sp <= udp_src_port;
+							dp <= udp_dst_port;
+							ssip <= src_ip;
+							sdip <= dst_ip;
+						end
 						
 						RS_UDP_CMD_ADDR: begin
 							def_addr <= i_in_data;
@@ -257,7 +276,12 @@ module eth_parser(
 							recv_state <= RS_WAIT_EOP;
 						end
 						
-						RS_UDP_SYNC_MAGIC_WORD: recv_state <= i_in_data == 32'hFAD08888 ? RS_UDP_SYNC_MASTER_FRAME : 5'h1F;
+						RS_UDP_SYNC_MAGIC_WORD: begin
+							recv_state <= ((i_in_data == 32'hFAD08888) && 
+								(src_ip == {8'd192, 8'd168, 8'd1, 8'd35}) && 
+								(dst_ip == {8'd192, 8'd168, 8'd1, 8'd255})) ? RS_UDP_SYNC_MASTER_FRAME : RS_WAIT_EOP;
+							magic_word <= i_in_data;
+						end
 						RS_UDP_SYNC_MASTER_FRAME: begin
 							sync_master_frame <= i_in_data;
 							recv_state <= RS_UDP_SYNC_TICK_TIME;
@@ -278,6 +302,15 @@ module eth_parser(
 							recv_state <= recv_state + 1'd1;
 					endcase
 		end
+		
+	probe16 probe_sp(.probe(sp));
+	probe16 probe_dp(.probe(dp));
+	probe32 probe_sip(.probe(ssip));
+	probe32 probe_dip(.probe(sdip));
+	probe32 probe_mw(.probe(magic_word));
+	probe32 probe_mf(.probe(sync_master_frame));
+	probe32 probe_tc(.probe(sync_tick_count));
+
 
 	reg			[0:0]			arp_req_flag;
 	reg			[47:0]			arp_req_mac;

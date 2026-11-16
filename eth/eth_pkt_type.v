@@ -39,12 +39,16 @@ module eth_pkt_type(
 	output						o_def_wren,
 	input						i_def_rdy,
 	
-	output		[31:0]			o_cmd_data,
-	output						o_cmd_wren,
-
-	output		[5:0]			o_vrc_addr,
-	output		[31:0]			o_vrc_data,
-	output		[1:0]			o_vrc_wren
+//	output		[31:0]			o_cmd_data,
+//	output						o_cmd_wren,
+//
+//	output		[5:0]			o_vrc_addr,
+//	output		[31:0]			o_vrc_data,
+//	output		[1:0]			o_vrc_wren,
+	
+	output		[31:0]			o_sync_master_frame,
+	output		[31:0]			o_sync_tick_count,
+	output		[31:0]			o_sync_strobe	
 );
 	`include "packet_type.h"
 	
@@ -109,7 +113,12 @@ module eth_pkt_type(
 		
 		.o_def_addr(o_def_addr),
 		.o_def_data(o_def_data),
-		.o_def_wren(o_def_wren)
+		.o_def_wren(o_def_wren),
+		
+		.o_sync_master_frame(o_sync_master_frame),
+		.o_sync_tick_count(o_sync_tick_count),
+		.o_sync_strobe(o_sync_strobe)
+		
 		//.i_def_rdy(i_def_rdy),
 		
 		//.o_cmd_data(o_cmd_data),
