@@ -303,14 +303,13 @@ module eth_parser(
 					endcase
 		end
 		
-	probe16 probe_sp(.probe(sp));
-	probe16 probe_dp(.probe(dp));
-	probe32 probe_sip(.probe(ssip));
-	probe32 probe_dip(.probe(sdip));
-	probe32 probe_mw(.probe(magic_word));
-	probe32 probe_mf(.probe(sync_master_frame));
-	probe32 probe_tc(.probe(sync_tick_count));
-
+//	probe16 probe_sp(.probe(sp));
+//	probe16 probe_dp(.probe(dp));
+//	probe32 probe_sip(.probe(ssip));
+//	probe32 probe_dip(.probe(sdip));
+//	probe32 probe_mw(.probe(magic_word));
+//	probe32 probe_mf(.probe(sync_master_frame));
+//	probe32 probe_tc(.probe(sync_tick_count));
 
 	reg			[0:0]			arp_req_flag;
 	reg			[47:0]			arp_req_mac;

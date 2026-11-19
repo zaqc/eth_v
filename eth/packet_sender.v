@@ -313,11 +313,16 @@ module packet_sender
 	wire						tx_fifo_vld;
 
 	eth_switch_output eth_switch_output_unit(
-		.o_tx_data(tx_fifo_data),	// send to Ethernet
-		.o_tx_vld(tx_fifo_vld),
-		.o_tx_sop(tx_fifo_sop),
-		.o_tx_eop(tx_fifo_eop),
-		.i_tx_rdy(tx_fifo_rdy),
+//		.o_tx_data(tx_fifo_data),	// send to Ethernet
+//		.o_tx_vld(tx_fifo_vld),
+//		.o_tx_sop(tx_fifo_sop),
+//		.o_tx_eop(tx_fifo_eop),
+//		.i_tx_rdy(tx_fifo_rdy),
+		.o_tx_data(o_tx_data),	// send to Ethernet
+		.o_tx_vld(o_tx_vld),
+		.o_tx_sop(o_tx_sop),
+		.o_tx_eop(o_tx_eop),
+		.i_tx_rdy(i_tx_rdy),
 	
 		.i_arp_data(arp_data),
 		.i_arp_sop(arp_sop),
@@ -349,44 +354,44 @@ module packet_sender
 	assign o_tx_vld = tx_fifo_vld;
 	assign tx_fifo_rdy = i_tx_rdy;
 `else
-	wire		[1:0]			tx_fifo_dummy;
-	wire						tx_fifo_full;
-
-	reg			[3:0]			ff_cntr;
-	
-	wire		[0:0]			f_filled;
-	assign f_filled = |{ff_cntr};
-		
-	wire						f_empty;
-	assign o_tx_vld = ~f_empty & f_filled;
-	
-	wire						f_rd;
-	assign f_rd = i_tx_rdy & f_filled;
-	
-	always @ (posedge clk or negedge rst_n)
-		if(~rst_n)
-			ff_cntr <= 4'd0;
-		else
-			if(tx_fifo_vld & tx_fifo_eop & ~tx_fifo_full)
-				ff_cntr <= ~f_empty & f_rd & o_tx_eop ? ff_cntr : ff_cntr + 1'b1;
-			else
-				if(~f_empty & f_rd & o_tx_eop)
-					ff_cntr <= ff_cntr - 1'd1;
-
-	eth_tx_fifo eth_tx_fifo_unit(
-		.aclr(~rst_n),
-		
-		.clock(clk),
-		.data({tx_fifo_data, tx_fifo_sop, tx_fifo_eop, 2'dX}),
-		.wrreq(tx_fifo_vld),
-		.full(tx_fifo_full),
-		
-		.q({o_tx_data, o_tx_sop, o_tx_eop, tx_fifo_dummy}),
-		.rdreq(f_rd),
-		.empty(f_empty)
-	);
-	
-	assign tx_fifo_rdy = ~tx_fifo_full;
+//	wire		[1:0]			tx_fifo_dummy;
+//	wire						tx_fifo_full;
+//
+//	reg			[3:0]			ff_cntr;
+//	
+//	wire		[0:0]			f_filled;
+//	assign f_filled = |{ff_cntr};
+//		
+//	wire						f_empty;
+//	assign o_tx_vld = ~f_empty & f_filled;
+//	
+//	wire						f_rd;
+//	assign f_rd = i_tx_rdy & f_filled;
+//	
+//	always @ (posedge clk or negedge rst_n)
+//		if(~rst_n)
+//			ff_cntr <= 4'd0;
+//		else
+//			if(tx_fifo_vld & tx_fifo_eop & ~tx_fifo_full)
+//				ff_cntr <= ~f_empty & f_rd & o_tx_eop ? ff_cntr : ff_cntr + 1'b1;
+//			else
+//				if(~f_empty & f_rd & o_tx_eop)
+//					ff_cntr <= ff_cntr - 1'd1;
+//
+//	eth_tx_fifo eth_tx_fifo_unit(
+//		.aclr(~rst_n),
+//		
+//		.clock(clk),
+//		.data({tx_fifo_data, tx_fifo_sop, tx_fifo_eop, 2'dX}),
+//		.wrreq(tx_fifo_vld),
+//		.full(tx_fifo_full),
+//		
+//		.q({o_tx_data, o_tx_sop, o_tx_eop, tx_fifo_dummy}),
+//		.rdreq(f_rd),
+//		.empty(f_empty)
+//	);
+//	
+//	assign tx_fifo_rdy = ~tx_fifo_full;
 `endif
 
 endmodule
